@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pink Counter</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        pinky: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            200: '#fecdd3',
+                            300: '#fda4af',
+                            400: '#fb7185',
+                            500: '#f43f5e',
+                            600: '#e11d48',
+                            700: '#be123c',
+                            800: '#9f1239',
+                            900: '#881337',
+                        },
+                        bubblegum: {
+                            light: '#ffd6e8',
+                            DEFAULT: '#ff85b3',
+                            dark: '#e64980',
+                        }
+                    },
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif'],
+                        quicksand: ['Quicksand', 'sans-serif'],
+                    },
+                    animation: {
+                        'bounce-short': 'bounceShort 0.25s ease-in-out',
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        bounceShort: {
+                            '0%, 100%': { transform: 'scale(1)' },
+                            '50%': { transform: 'scale(1.15)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-12px) rotate(3deg)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .pink-glass {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 2px solid rgba(255, 182, 193, 0.5);
+            box-shadow: 0 20px 40px -15px rgba(244, 63, 94, 0.15);
+        }
+
+        .dark .pink-glass {
+            background: rgba(30, 20, 28, 0.75);
+            backdrop-filter: blur(16px);
+            border: 2px solid rgba(225, 29, 72, 0.3);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+        }
+
+        .btn-press {
+            transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-press:active {
+            transform: scale(0.92);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(253, 164, 175, 0.1);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(244, 63, 94, 0.4);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(244, 63, 94, 0.7);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-gradient-to-br from-pink-100 via-rose-50 to-pink-200 dark:from-gray-950 dark:via-pink-950 dark:to-gray-900 text-gray-800 dark:text-pink-100 transition-colors duration-500 relative overflow-x-hidden flex flex-col justify-between">
+
+    <!-- Floating Background Decorative Elements -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div class="absolute -top-10 -left-10 w-72 h-72 bg-pink-300/30 rounded-full blur-3xl animate-float"></div>
+        <div class="absolute top-1/2 -right-20 w-96 h-96 bg-rose-300/30 rounded-full blur-3xl animate-float" style="animation-delay: -2s;"></div>
+        <div class="absolute -bottom-10 left-1/3 w-80 h-80 bg-pink-400/20 rounded-full blur-3xl animate-float" style="animation-delay: -4s;"></div>
+    </div>
+
+    <!-- Main Content Container -->
+    <div class="relative z-10 min-h-screen flex flex-col justify-between p-4 sm:p-6 max-w-lg mx-auto w-full">
+
+        <!-- Header Controls -->
+        <header class="flex items-center justify-between mb-4 gap-2">
+            <div class="flex items-center gap-2">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-400 flex items-center justify-center text-white shadow-lg shadow-pink-500/30">
+                    <i class="fa-solid fa-heart text-lg animate-pulse"></i>
+                </div>
+                <h1 class="font-fredoka text-2xl font-bold bg-gradient-to-r from-pink-600 via-rose-500 to-pink-400 bg-clip-text text-transparent">
+                    Pink Counter
+                </h1>
+            </div>
+
+            <!-- Top Right Action Icons -->
+            <div class="flex items-center gap-2">
+                <button id="soundToggleBtn" onclick="toggleSound()" title="Toggle Sound Effects" class="btn-press w-10 h-10 rounded-xl pink-glass flex items-center justify-center text-pink-600 dark:text-pink-300 hover:bg-pink-100/50 dark:hover:bg-pink-900/40">
+                    <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+                </button>
+                <button id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode" class="btn-press w-10 h-10 rounded-xl pink-glass flex items-center justify-center text-pink-600 dark:text-pink-300 hover:bg-pink-100/50 dark:hover:bg-pink-900/40">
+                    <i id="themeIcon" class="fa-solid fa-moon"></i>
+                </button>
+                <button onclick="toggleHistoryDrawer()" title="View History Log" class="btn-press w-10 h-10 rounded-xl pink-glass flex items-center justify-center text-pink-600 dark:text-pink-300 hover:bg-pink-100/50 dark:hover:bg-pink-900/40">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Counter Tabs Switcher -->
+        <div id="counterTabs" class="flex items-center gap-2 overflow-x-auto pb-2 mb-3 scrollbar-none">
+            <!-- Dynamically Populated Tabs -->
+        </div>
+
+        <!-- Central Card -->
+        <main class="pink-glass rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center my-auto relative overflow-hidden transition-all duration-300">
+            
+            <!-- Editable Title & Icon -->
+            <div class="flex items-center gap-2 mb-4 w-full justify-center">
+                <input type="text" id="counterTitleInput" onchange="updateCounterTitle(this.value)" 
+                    class="font-fredoka text-xl font-semibold text-center bg-transparent border-b border-transparent hover:border-pink-300 focus:border-pink-500 outline-none px-2 py-1 text-pink-700 dark:text-pink-200 transition-colors w-full max-w-[220px]" 
+                    value="My Pink Counter" placeholder="Name your counter...">
+                <button onclick="openEditGoalModal()" title="Set Target Goal" class="text-pink-400 hover:text-pink-600 dark:hover:text-pink-200 transition-colors">
+                    <i class="fa-solid fa-bullseye text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Big Number Display -->
+            <div class="relative my-4 flex items-center justify-center w-full min-h-[160px]">
+                <span id="counterDisplay" class="font-fredoka text-7xl sm:text-8xl font-bold text-pink-600 dark:text-pink-300 tracking-tight transition-transform duration-150 inline-block drop-shadow-sm select-none">
+                    0
+                </span>
+            </div>
+
+            <!-- Goal Progress Bar -->
+            <div id="goalContainer" class="w-full max-w-xs mb-6 px-2">
+                <div class="flex justify-between items-center text-xs font-semibold text-pink-600 dark:text-pink-300 mb-1">
+                    <span id="goalText">Goal: 100</span>
+                    <span id="goalPercent">0%</span>
+                </div>
+                <div class="w-full h-3 bg-pink-200/60 dark:bg-pink-950/60 rounded-full overflow-hidden p-0.5 border border-pink-300/40">
+                    <div id="goalProgressBar" class="h-full bg-gradient-to-r from-pink-400 via-rose-500 to-pink-600 rounded-full transition-all duration-300 w-0"></div>
+                </div>
+            </div>
+
+            <!-- Main Incrementor Buttons -->
+            <div class="flex items-center justify-center gap-4 w-full mb-6">
+                <!-- Decrement Button -->
+                <button onclick="changeCount(-getStepSize())" 
+                    class="btn-press w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-pink-100 dark:bg-pink-900/50 text-pink-600 dark:text-pink-300 border-2 border-pink-300 dark:border-pink-700 shadow-md flex items-center justify-center text-2xl sm:text-3xl hover:bg-pink-200 dark:hover:bg-pink-800/60 active:bg-pink-300">
+                    <i class="fa-solid fa-minus"></i>
+                </button>
+
+                <!-- Big Primary Increment Button -->
+                <button onclick="changeCount(getStepSize())" 
+                    class="btn-press flex-1 max-w-[180px] h-20 sm:h-24 rounded-3xl bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 text-white shadow-xl shadow-pink-500/40 border-2 border-pink-300/40 flex flex-col items-center justify-center hover:brightness-105 active:scale-95">
+                    <i class="fa-solid fa-plus text-3xl mb-0.5"></i>
+                    <span class="text-xs font-bold tracking-wider uppercase opacity-90">TAP TO COUNT</span>
+                </button>
+            </div>
+
+            <!-- Quick Adjustments & Step Options -->
+            <div class="flex items-center justify-between w-full max-w-xs gap-2 pt-2 border-t border-pink-200/50 dark:border-pink-900/50">
+                <!-- Step Selector -->
+                <div class="flex items-center gap-1 bg-pink-100/80 dark:bg-pink-950/80 p-1 rounded-xl border border-pink-200 dark:border-pink-800">
+                    <span class="text-[10px] font-bold text-pink-500 dark:text-pink-400 uppercase px-1">Step:</span>
+                    <button onclick="setStepSize(1)" id="stepBtn1" class="step-btn px-2 py-0.5 rounded-lg text-xs font-bold bg-pink-500 text-white shadow-sm">1</button>
+                    <button onclick="setStepSize(5)" id="stepBtn5" class="step-btn px-2 py-0.5 rounded-lg text-xs font-bold text-pink-600 dark:text-pink-300 hover:bg-pink-200/50">5</button>
+                    <button onclick="setStepSize(10)" id="stepBtn10" class="step-btn px-2 py-0.5 rounded-lg text-xs font-bold text-pink-600 dark:text-pink-300 hover:bg-pink-200/50">10</button>
+                </div>
+
+                <!-- Reset Button -->
+                <button onclick="confirmReset()" class="btn-press text-xs font-bold px-3 py-2 rounded-xl text-rose-500 dark:text-rose-400 hover:bg-rose-100/50 dark:hover:bg-rose-950/50 flex items-center gap-1">
+                    <i class="fa-solid fa-rotate-left text-xs"></i>
+                    Reset
+                </button>
+            </div>
+        </main>
+
+        <!-- Footer Stats Bar -->
+        <footer class="mt-4 flex items-center justify-between text-xs text-pink-600/80 dark:text-pink-300/80 font-medium px-2">
+            <div class="flex items-center gap-1">
+                <i class="fa-solid fa-fire text-pink-500"></i>
+                <span id="todayTotalLabel">Today: 0 taps</span>
+            </div>
+            <button onclick="addNewCounterModal()" class="hover:underline flex items-center gap-1 font-semibold text-pink-700 dark:text-pink-300">
+                <i class="fa-solid fa-plus-circle"></i>
+                New Counter
+            </button>
+        </footer>
+
+    </div>
+
+    <!-- History Drawer (Slide-Over) -->
+    <div id="historyDrawer" class="fixed inset-0 z-50 transform translate-x-full transition-transform duration-300 ease-in-out pointer-events-none">
+        <!-- Backdrop -->
+        <div id="historyBackdrop" onclick="toggleHistoryDrawer()" class="absolute inset-0 bg-black/30 backdrop-blur-sm opacity-0 transition-opacity duration-300"></div>
+        
+        <!-- Drawer Body -->
+        <div class="absolute right-0 top-0 bottom-0 w-full max-w-sm bg-pink-50 dark:bg-gray-900 border-l border-pink-200 dark:border-pink-900 shadow-2xl p-6 flex flex-col justify-between pointer-events-auto">
+            <div>
+                <div class="flex items-center justify-between mb-6 pb-3 border-b border-pink-200 dark:border-pink-800">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-pink-500 text-lg"></i>
+                        <h2 class="font-fredoka text-xl font-bold text-pink-700 dark:text-pink-200">Activity History</h2>
+                    </div>
+                    <button onclick="toggleHistoryDrawer()" class="text-pink-400 hover:text-pink-600 text-xl">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- History Log List -->
+                <div id="historyList" class="space-y-2 max-h-[70vh] overflow-y-auto pr-1">
+                    <!-- History items populated via JS -->
+                </div>
+            </div>
+
+            <button onclick="clearHistory()" class="w-full py-2.5 rounded-xl bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-300 text-xs font-bold hover:bg-rose-200 transition-colors flex items-center justify-center gap-2">
+                <i class="fa-solid fa-trash-can"></i>
+                Clear Activity Log
+            </button>
+        </div>
+    </div>
+
+    <!-- Custom Dialog Modal (Reset Confirmation / Goal / New Counter) -->
+    <div id="customModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm hidden opacity-0 transition-opacity duration-200">
+        <div id="modalContainer" class="pink-glass w-full max-w-sm rounded-3xl p-6 shadow-2xl transform scale-95 transition-transform duration-200">
+            <h3 id="modalTitle" class="font-fredoka text-xl font-bold text-pink-700 dark:text-pink-200 mb-2">Notice</h3>
+            <p id="modalMessage" class="text-sm text-gray-600 dark:text-pink-200 mb-4">Are you sure?</p>
+            <div id="modalInputContainer" class="mb-4 hidden">
+                <input type="number" id="modalInput" class="w-full p-3 rounded-xl bg-white/80 dark:bg-gray-800/80 border border-pink-300 dark:border-pink-700 font-bold text-center text-pink-600 dark:text-pink-200 outline-none focus:ring-2 focus:ring-pink-400">
+            </div>
+            <div class="flex items-center justify-end gap-2">
+                <button id="modalCancelBtn" onclick="closeModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-gray-500 hover:bg-pink-100 dark:hover:bg-gray-800 transition-colors">Cancel</button>
+                <button id="modalConfirmBtn" class="px-4 py-2 rounded-xl text-xs font-bold bg-pink-500 hover:bg-pink-600 text-white shadow-md transition-colors">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-pink-600 text-white text-xs font-bold px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toastIcon" class="fa-solid fa-circle-check"></i>
+        <span id="toastMsg">Action completed!</span>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Default App State
+        let state = {
+            activeId: 'counter-1',
+            counters: [
+                { id: 'counter-1', title: '🌸 Pink Counter', count: 0, goal: 100, step: 1 }
+            ],
+            soundEnabled: true,
+            theme: 'light',
+            history: []
+        };
+
+        // Audio Context setup for synth sound effects
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!state.soundEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'inc') {
+                    // Cute high bubble pop
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'dec') {
+                    // Soft lower pop
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(350, now);
+                    osc.frequency.exponentialRampToValueAtTime(220, now + 0.08);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'reset') {
+                    // Sweeping chime
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.exponentialRampToValueAtTime(200, now + 0.2);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                } else if (type === 'goal') {
+                    // Victory fanfare chord
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.type = 'triangle';
+                        o.frequency.setValueAtTime(freq, now + idx * 0.06);
+                        g.gain.setValueAtTime(0.15, now + idx * 0.06);
+                        g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.3);
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.start(now + idx * 0.06);
+                        o.stop(now + idx * 0.06 + 0.3);
+                    });
+                }
+            } catch (e) {
+                console.warn('Audio playback error:', e);
+            }
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem('pink_counter_app_data');
+            if (saved) {
+                try {
+                    state = { ...state, ...JSON.parse(saved) };
+                } catch (e) {
+                    console.error('Failed to parse saved state:', e);
+                }
+            }
+            applyTheme();
+            renderTabs();
+            renderActiveCounter();
+            renderHistory();
+        }
+
+        function saveState() {
+            localStorage.setItem('pink_counter_app_data', JSON.stringify(state));
+        }
+
+        function getActiveCounter() {
+            return state.counters.find(c => c.id === state.activeId) || state.counters[0];
+        }
+
+        function getStepSize() {
+            return getActiveCounter().step || 1;
+        }
+
+        function changeCount(delta) {
+            const active = getActiveCounter();
+            const prev = active.count;
+            active.count += delta;
+
+            // Trigger bounce animation on display
+            const display = document.getElementById('counterDisplay');
+            display.classList.remove('animate-bounce-short');
+            void display.offsetWidth; // Force reflow
+            display.classList.add('animate-bounce-short');
+
+            // Play audio
+            playSound(delta > 0 ? 'inc' : 'dec');
+
+            // Check goal celebration
+            if (prev < active.goal && active.count >= active.goal) {
+                triggerGoalCelebration();
+            }
+
+            // Log activity
+            addHistoryLog(active.title, delta);
+
+            saveState();
+            renderActiveCounter();
+        }
+
+        function setStepSize(val) {
+            const active = getActiveCounter();
+            active.step = val;
+            saveState();
+            updateStepButtons();
+            showToast(`Step set to ${val}`);
+        }
+
+        function updateStepButtons() {
+            const currentStep = getStepSize();
+            [1, 5, 10].forEach(val => {
+                const btn = document.getElementById(`stepBtn${val}`);
+                if (!btn) return;
+                if (val === currentStep) {
+                    btn.className = "step-btn px-2 py-0.5 rounded-lg text-xs font-bold bg-pink-500 text-white shadow-sm";
+                } else {
+                    btn.className = "step-btn px-2 py-0.5 rounded-lg text-xs font-bold text-pink-600 dark:text-pink-300 hover:bg-pink-200/50";
+                }
+            });
+        }
+
+        function updateCounterTitle(val) {
+            const active = getActiveCounter();
+            active.title = val.trim() || 'Pink Counter';
+            saveState();
+            renderTabs();
+        }
+
+        function triggerGoalCelebration() {
+            playSound('goal');
+            showToast('🎉 Target Goal Reached!', 'fa-trophy');
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 80,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#f43f5e', '#fb7185', '#fecdd3', '#ffffff']
+                });
+            }
+        }
+
+        function renderActiveCounter() {
+            const active = getActiveCounter();
+            document.getElementById('counterDisplay').innerText = active.count;
+            document.getElementById('counterTitleInput').value = active.title;
+
+            // Goal Progress
+            const goal = active.goal || 100;
+            const pct = Math.min(100, Math.max(0, Math.round((active.count / goal) * 100)));
+            document.getElementById('goalText').innerText = `Goal: ${goal}`;
+            document.getElementById('goalPercent').innerText = `${pct}%`;
+            document.getElementById('goalProgressBar').style.width = `${pct}%`;
+
+            updateStepButtons();
+            updateTodayTotal();
+        }
+
+        function updateTodayTotal() {
+            const todayStr = new Date().toLocaleDateString();
+            const todayLogs = state.history.filter(h => new Date(h.time).toLocaleDateString() === todayStr);
+            const totalTaps = todayLogs.length;
+            document.getElementById('todayTotalLabel').innerText = `Today: ${totalTaps} actions`;
+        }
+
+        function addHistoryLog(title, delta) {
+            state.history.unshift({
+                id: Date.now(),
+                counterTitle: title,
+                delta: delta,
+                time: new Date().toISOString()
+            });
+            // Keep max 50 history entries
+            if (state.history.length > 50) state.history.pop();
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            if (state.history.length === 0) {
+                list.innerHTML = `<p class="text-xs text-center text-gray-400 dark:text-pink-400/60 py-8">No recorded activity yet!</p>`;
+                return;
+            }
+
+            list.innerHTML = state.history.map(item => {
+                const date = new Date(item.time);
+                const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const isPos = item.delta > 0;
+                return `
+                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-white/70 dark:bg-gray-800/70 border border-pink-100 dark:border-pink-900/50 text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-lg flex items-center justify-center ${isPos ? 'bg-pink-100 text-pink-600 dark:bg-pink-900/50' : 'bg-gray-100 text-gray-600 dark:bg-gray-800'} font-bold">
+                                ${isPos ? '+' + item.delta : item.delta}
+                            </span>
+                            <span class="font-semibold text-gray-700 dark:text-pink-200">${escapeHtml(item.counterTitle)}</span>
+                        </div>
+                        <span class="text-[10px] text-gray-400 dark:text-pink-400/60">${timeStr}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function clearHistory() {
+            state.history = [];
+            saveState();
+            renderHistory();
+            updateTodayTotal();
+            showToast('History cleared');
+        }
+
+        function renderTabs() {
+            const container = document.getElementById('counterTabs');
+            container.innerHTML = state.counters.map(c => {
+                const isActive = c.id === state.activeId;
+                return `
+                    <div class="flex items-center">
+                        <button onclick="switchCounter('${c.id}')" 
+                            class="px-3.5 py-1.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${isActive ? 'bg-pink-500 text-white shadow-md shadow-pink-500/20' : 'pink-glass text-pink-600 dark:text-pink-300 hover:bg-pink-100/60'}">
+                            <span>${escapeHtml(c.title)}</span>
+                            <span class="opacity-80 font-normal">(${c.count})</span>
+                        </button>
+                        ${state.counters.length > 1 ? `
+                            <button onclick="deleteCounter('${c.id}')" title="Delete Counter" class="text-pink-400 hover:text-rose-600 ml-1 text-xs px-1">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function switchCounter(id) {
+            state.activeId = id;
+            saveState();
+            renderTabs();
+            renderActiveCounter();
+        }
+
+        function addNewCounterModal() {
+            openModal({
+                title: 'New Counter',
+                message: 'Enter a name for your new counter:',
+                hasInput: true,
+                inputValue: '✨ New Counter',
+                inputType: 'text',
+                confirmText: 'Create',
+                onConfirm: (val) => {
+                    const newId = 'counter-' + Date.now();
+                    state.counters.push({
+                        id: newId,
+                        title: val.trim() || 'New Counter',
+                        count: 0,
+                        goal: 100,
+                        step: 1
+                    });
+                    state.activeId = newId;
+                    saveState();
+                    renderTabs();
+                    renderActiveCounter();
+                    showToast('Created new counter!');
+                }
+            });
+        }
+
+        function deleteCounter(id) {
+            if (state.counters.length <= 1) return;
+            state.counters = state.counters.filter(c => c.id !== id);
+            if (state.activeId === id) {
+                state.activeId = state.counters[0].id;
+            }
+            saveState();
+            renderTabs();
+            renderActiveCounter();
+            showToast('Counter removed');
+        }
+
+        function confirmReset() {
+            openModal({
+                title: 'Reset Counter?',
+                message: 'This will set the current count back to 0.',
+                confirmText: 'Reset',
+                onConfirm: () => {
+                    const active = getActiveCounter();
+                    active.count = 0;
+                    playSound('reset');
+                    saveState();
+                    renderActiveCounter();
+                    showToast('Counter reset to 0');
+                }
+            });
+        }
+
+        function openEditGoalModal() {
+            const active = getActiveCounter();
+            openModal({
+                title: 'Set Target Goal',
+                message: 'Set a target number for progress tracking:',
+                hasInput: true,
+                inputValue: active.goal || 100,
+                inputType: 'number',
+                confirmText: 'Save Goal',
+                onConfirm: (val) => {
+                    const num = parseInt(val, 10);
+                    if (!isNaN(num) && num > 0) {
+                        active.goal = num;
+                        saveState();
+                        renderActiveCounter();
+                        showToast(`Goal set to ${num}`);
+                    }
+                }
+            });
+        }
+
+        // Custom Modal Logic (replaces native alert/confirm)
+        let modalConfirmCallback = null;
+
+        function openModal({ title, message, hasInput = false, inputValue = '', inputType = 'text', confirmText = 'Confirm', onConfirm }) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalMessage').innerText = message;
+            document.getElementById('modalConfirmBtn').innerText = confirmText;
+
+            const inputContainer = document.getElementById('modalInputContainer');
+            const input = document.getElementById('modalInput');
+
+            if (hasInput) {
+                inputContainer.classList.remove('hidden');
+                input.type = inputType;
+                input.value = inputValue;
+            } else {
+                inputContainer.classList.add('hidden');
+            }
+
+            modalConfirmCallback = () => {
+                const val = hasInput ? input.value : true;
+                if (onConfirm) onConfirm(val);
+                closeModal();
+            };
+
+            document.getElementById('modalConfirmBtn').onclick = modalConfirmCallback;
+
+            const modal = document.getElementById('customModal');
+            const container = document.getElementById('modalContainer');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                container.classList.remove('scale-95');
+                container.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('customModal');
+            const container = document.getElementById('modalContainer');
+            modal.classList.add('opacity-0');
+            container.classList.remove('scale-100');
+            container.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        // Drawer & Utilities
+        function toggleHistoryDrawer() {
+            const drawer = document.getElementById('historyDrawer');
+            const backdrop = document.getElementById('historyBackdrop');
+            const isClosed = drawer.classList.contains('translate-x-full');
+
+            if (isClosed) {
+                drawer.classList.remove('translate-x-full', 'pointer-events-none');
+                setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+            } else {
+                backdrop.classList.add('opacity-0');
+                drawer.classList.add('translate-x-full', 'pointer-events-none');
+            }
+        }
+
+        function toggleSound() {
+            state.soundEnabled = !state.soundEnabled;
+            saveState();
+            document.getElementById('soundIcon').className = state.soundEnabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark opacity-50';
+            showToast(state.soundEnabled ? 'Sound Enabled' : 'Sound Muted');
+        }
+
+        function toggleTheme() {
+            state.theme = state.theme === 'dark' ? 'light' : 'dark';
+            saveState();
+            applyTheme();
+        }
+
+        function applyTheme() {
+            const isDark = state.theme === 'dark';
+            document.documentElement.classList.toggle('dark', isDark);
+            document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+        }
+
+        function showToast(msg, icon = 'fa-circle-check') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            document.getElementById('toastIcon').className = `fa-solid ${icon}`;
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2000);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[m]);
+        }
+
+        // Keyboard Controls
+        window.addEventListener('keydown', (e) => {
+            if (document.activeElement.tagName === 'INPUT') return;
+            if (e.key === 'ArrowUp' || e.key === ' ' || e.key === '+') {
+                e.preventDefault();
+                changeCount(getStepSize());
+            } else if (e.key === 'ArrowDown' || e.key === '-') {
+                e.preventDefault();
+                changeCount(-getStepSize());
+            } else if (e.key === 'r' || e.key === 'R') {
+                confirmReset();
+            }
+        });
+
+        // Initialize App on Load
+        window.onload = function () {
+            loadState();
+        };
+    </script>
+</body>
+</html>
